@@ -2,7 +2,8 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask import Flask
-
+from sqlalchemy import event
+from sqlalchemy.orm import validates
 # Initialize Flask app
 # app = Flask(__name__)
 
@@ -48,8 +49,8 @@ class Task(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     report_id = db.Column(db.Integer, db.ForeignKey('report.id'), nullable=False)
 
-    # @validates('status')
-    # def validate_status(self, key, value):
-    #     if value not in ['ongoing', 'completed']:
-    #         raise ValueError("Status must be either 'ongoing' or 'completed'.")
-    #     return value
+    @validates('status')
+    def validate_status(self, key, value):
+        if value not in ['ongoing', 'completed']:
+            raise ValueError("Status must be either 'ongoing' or 'completed'.")
+        return value
