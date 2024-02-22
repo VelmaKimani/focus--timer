@@ -8,7 +8,7 @@ from flask_jwt_extended import JWTManager, set_access_cookies, create_access_tok
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.sqlite'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pomo.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'M1U5T6VDFH68'  
 app.config['JWT_SECRET_KEY'] = 'FG89JK07GVC5' 
@@ -37,12 +37,12 @@ def signup():
     if not username or not email or not password:
         return jsonify({'message': 'check if you have entered email or password'}), 400
 
-    if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
+    if User.query.filter_by(name=username).first() or User.query.filter_by(email=email).first():
         return jsonify({'message': 'Username or email already exists'}), 400
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    new_user = User(username=username, email=email, password=hashed_password)
+    new_user = User(name=username, email=email, password=hashed_password)
     db.session.add(new_user)
     db.session.commit()
 
