@@ -135,6 +135,34 @@ def delete_user(username):
 
     return jsonify({'message': 'User deleted successfully'}), 200
 
+@app.route('/users', methods=['GET'])
+@jwt_required()
+# @csrf.exempt
+def get_users():
+    users = User.query.all()
+    user_data = [{
+        'id': user.id,
+        'username': user.name,
+        'email': user.email
+    } for user in users]
+    return jsonify(user_data)
+
+@app.route('/users/<int:user_id>', methods=['GET'])
+@jwt_required()
+# @csrf.exempt
+def get_user_by_id(user_id):
+    user = User.query.get(user_id)
+    if user:
+        user_data = {
+            'id': user.id,
+            'username': user.name,
+            'email': user.email
+        }
+        return jsonify(user_data)
+    else:
+        return jsonify({'message': 'User not found'}), 404
+
+
 @app.route('/api/auth/logout', methods=['POST'])
 def logout():
     resp = jsonify({'logout': True})
