@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 import random
+from flask_sqlalchemy import SQLAlchemy
 from models import db, User
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
@@ -7,7 +8,7 @@ from flask_jwt_extended import JWTManager, set_access_cookies, create_access_tok
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'M1U5T6VDFH68'  
 app.config['JWT_SECRET_KEY'] = 'FG89JK07GVC5' 
@@ -141,4 +142,4 @@ def logout():
     return resp, 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=5000,debug=True)
