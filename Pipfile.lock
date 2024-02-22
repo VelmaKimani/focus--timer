@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e9e3ca8987d1e55eba9bdff2efeb2a570f1adc5c70b26c96e1922aab52b1c140"
+
         },
         "pipfile-spec": 6,
         "requires": {
@@ -221,13 +221,7 @@
             "markers": "python_version >= '3.7'",
             "version": "==2.1.5"
         },
-        "migrate": {
-            "hashes": [
-                "sha256:5cca9d963f75b65b97e3e13456cbeecb7012610b1d515ce254daeb5be9d4b7e7"
-            ],
-            "index": "pypi",
-            "version": "==0.3.8"
-        },
+
         "sqlalchemy": {
             "hashes": [
                 "sha256:03f448ffb731b48323bda68bcc93152f751436ad6037f18a42b7e16af9e91c07",
@@ -280,7 +274,7 @@
                 "sha256:fd8aafda7cdff03b905d4426b714601c0978725a19efc39f5f207b86d188ba01",
                 "sha256:ff2f1b7c963961d41403b650842dc2039175b906ab2093635d8319bef0b7d620"
             ],
-            "index": "pypi",
+
             "markers": "python_version >= '3.7'",
             "version": "==2.0.27"
         },
