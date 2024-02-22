@@ -232,7 +232,12 @@ def update_task(id):
         Task.create_report_entry(task)
 
     db.session.commit()
-    return jsonify({'message': 'Task updated successfully'})
+    return jsonify({'message': 'Task updated successfully',
+                    'task_name':data['task_name'],
+                    'duration':data['duration'],
+                    'category':data['category'],
+                    'description':data['description'], 
+                    })
 
 @app.route('/tasks/<int:id>', methods=['DELETE'])
 @jwt_required()
