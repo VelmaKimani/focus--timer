@@ -66,7 +66,7 @@ def login():
     if not username or not password:
         return jsonify({'message': 'Incomplete data'}), 400
 
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(name=username).first()
 
     if not user or not bcrypt.check_password_hash(user.password, password):
         resp = jsonify({'message': 'Invalid credentials'})
