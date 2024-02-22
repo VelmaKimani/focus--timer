@@ -1,12 +1,13 @@
 from flask import Flask, jsonify, request
 import random
-from flask_wtf.csrf import CSRFProtect
+# from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail, Message
 import re
-from models import db, User, Task
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, set_access_cookies, create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
+from models import db, User, Report, Task
+from datetime import datetime, time
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -16,7 +17,7 @@ app.config['SECRET_KEY'] = 'M1U5T6VDFH68'
 app.config['JWT_SECRET_KEY'] = 'FG89JK07GVC5' 
 app.config['JWT_TOKEN_LOCATION'] = ['cookies']
 app.config['JWT_COOKIE_SECURE'] = True  
-app.config['JWT_COOKIE_CSRF_PROTECT'] = False
+# app.config['JWT_COOKIE_CSRF_PROTECT'] = False
 
 
 mail = Mail(app)
@@ -25,7 +26,7 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-csrf = CSRFProtect(app)
+# csrf = CSRFProtect(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
@@ -35,7 +36,7 @@ def is_valid_email(email):
     return email_regex.match(email) is not None
 
 @app.route('/signup', methods=['POST'])
-@csrf.exempt
+
 def signup():
     data = request.json
 
@@ -68,7 +69,7 @@ def signup():
     return resp, 201
 
 @app.route('/login', methods=['POST'])
-@csrf.exempt
+
 def login():
     data = request.json
 
@@ -98,7 +99,7 @@ def login():
 
 @app.route('/user/<string:name>', methods=['PATCH'])
 @jwt_required()
-@csrf.exempt
+
 def update_user(name):
     current_user_id = request.current_user_id
     current_user = User.query.get(current_user_id)
@@ -127,7 +128,7 @@ def update_user(name):
 
 @app.route('/user/<string:name>', methods=['DELETE'])
 @jwt_required()
-@csrf.exempt
+
 def delete_user(name):
     current_user_id = request.current_user_id
     current_user = User.query.get(current_user_id)
@@ -147,7 +148,7 @@ def delete_user(name):
 
 @app.route('/users', methods=['GET'])
 @jwt_required()
-@csrf.exempt
+
 def get_users():
     users = User.query.all()
     user_data = [{
@@ -163,82 +164,110 @@ def logout():
     unset_jwt_cookies(resp)
     return resp, 200
 
-@app.route('/task', methods=['POST'])
+@app.route('/tasks', methods=['POST'])
 @jwt_required()
-@csrf.exempt
 def create_task():
     data = request.json
+    date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+    time_parts = data['time'].split(':')
+    time_obj = time(int(time_parts[0]), int(time_parts[1]))
+
     new_task = Task(
         task_name=data['task_name'],
+        duration=data['duration'],
         category=data['category'],
         description=data['description'],
-        duration=data['duration'],
-        date=data['date'],
-        time=data['time'],
-        status = data['status']
+        date=date,
+        time=time_obj,
+        status=data['status'],
+        user_id=data['user_id']
     )
     db.session.add(new_task)
     db.session.commit()
-    
-    return jsonify(
-        message="Task created successfully",
-        task_id=new_task.id,
-        task_name=data['task_name'],
-        category=data['category'],
-        duration=data['duration'],
-        description=data['description'],
-        date=data['date'],
-        time=data['time'],
-        status=new_task.status  
-    ), 201
 
-@app.route('/task/<int:task_id>', methods=['DELETE'])
-@jwt_required()
-@csrf.exempt
-def delete_task(task_id):
-    task = Task.query.get(task_id)
-    if task:
-        task.status = True 
-        db.session.commit()
-        return jsonify(message="Task deleted successfully"), 200
-    else:
-        return jsonify(error="Task not found"), 404
+    if new_task.status == 'completed':
+        Task.create_report_entry(new_task)
 
-@app.route('/task/<int:task_id>', methods=['PUT'])
-@jwt_required()
-@csrf.exempt
-def update_task(task_id):
-    task = Task.query.get(task_id)
-    if task:
-        data = request.json
-        task.task_name = data.get('task_name', task.task_name)
-        task.category = data.get('category', task.category)
-        task.description = data.get('description', task.description)
-        task.duration = data.get('duration', task.duration)
-        task.date = data.get('date', task.date)
-        task.time = data.get('time', task.time)
-        db.session.commit()
-        return jsonify(message="Task updated successfully"), 200
-    else:
-        return jsonify(error="Task not found"), 404
+    return jsonify({
+        'task_name': data['task_name'],
+        'duration': data['duration'],
+        'category': data['category'],
+        'description': data['description'],
+        'message': 'Task created successfully'
+    }), 201
 
 @app.route('/tasks', methods=['GET'])
 @jwt_required()
-@csrf.exempt
-def get_tasks():
-    tasks = Task.query.filter_by(status=False).all()  
-    task_data = [{
-        'task_id': task.id,
-        'task_name': task.task_name,
-        'category': task.category,
-        'description': task.description,
-        'duration': task.duration,
-        'date': task.date,
-        'time': task.time,
-        'status': task.status  
-    } for task in tasks]
+def get_ongoing_tasks():
+    ongoing_tasks = Task.query.filter_by(status='ongoing').all()
+    output = []
+    for task in ongoing_tasks:
+        task_data = {
+            'id': task.id,
+            'task_name': task.task_name,
+            'duration': task.duration,
+            'category': task.category,
+            'description': task.description,
+            'date': task.date.strftime('%Y-%m-%d'),
+            'time': task.time.strftime('%H:%M:%S'),
+            'status': task.status,
+            'user_id': task.user_id
+        }
+        output.append(task_data)
+    return jsonify({'tasks': output})
 
-    return jsonify(task_data)
+@app.route('/tasks/<int:id>', methods=['PUT'])
+@jwt_required()
+def update_task(id):
+    task = Task.query.get_or_404(id)
+    data = request.json
+
+    task.task_name = data['task_name']
+    task.duration = data['duration']
+    task.category = data['category']
+    task.description = data['description']
+    task.status = data['status']
+
+    if task.status == 'completed' and not task.report_id:
+        Task.create_report_entry(task)
+
+    db.session.commit()
+    return jsonify({'message': 'Task updated successfully'})
+
+@app.route('/tasks/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_task(id):
+    task = Task.query.get_or_404(id)
+    db.session.delete(task)
+    db.session.commit()
+    return jsonify({'message': 'Task deleted successfully'})
+
+@app.route('/reports', methods=['GET'])
+@jwt_required()
+def get_reports():
+    reports = Report.query.all()
+    output = []
+    for report in reports:
+        report_data = {
+            'id': report.id,
+            'date': report.date.strftime('%Y-%m-%d'),
+            'time': report.time.strftime('%H:%M:%S'),
+            'task': report.task,
+            'project': report.project,
+            'duration': report.duration,
+            'category': report.category
+        }
+        output.append(report_data)
+    return jsonify({'reports': output})
+
+@app.route('/reports/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_report(id):
+    report = Report.query.get_or_404(id)
+    db.session.delete(report)
+    db.session.commit()
+    return jsonify({'message': 'Report deleted successfully'})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
