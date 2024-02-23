@@ -8,7 +8,7 @@ from flask_jwt_extended import JWTManager, set_access_cookies, create_access_tok
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.sqlite'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pomo.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'M1U5T6VDFH68'  
 app.config['JWT_SECRET_KEY'] = 'FG89JK07GVC5' 
@@ -37,12 +37,12 @@ def signup():
     if not username or not email or not password:
         return jsonify({'message': 'check if you have entered email or password'}), 400
 
-    if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
+    if User.query.filter_by(name=username).first() or User.query.filter_by(email=email).first():
         return jsonify({'message': 'Username or email already exists'}), 400
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    new_user = User(username=username, email=email, password=hashed_password)
+    new_user = User(name=username, email=email, password=hashed_password)
     db.session.add(new_user)
     db.session.commit()
 
@@ -66,7 +66,7 @@ def login():
     if not username or not password:
         return jsonify({'message': 'Incomplete data'}), 400
 
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(name=username).first()
 
     if not user or not bcrypt.check_password_hash(user.password, password):
         resp = jsonify({'message': 'Invalid credentials'})
@@ -134,6 +134,34 @@ def delete_user(username):
     db.session.commit()
 
     return jsonify({'message': 'User deleted successfully'}), 200
+
+@app.route('/users', methods=['GET'])
+@jwt_required()
+# @csrf.exempt
+def get_users():
+    users = User.query.all()
+    user_data = [{
+        'id': user.id,
+        'username': user.name,
+        'email': user.email
+    } for user in users]
+    return jsonify(user_data)
+
+@app.route('/users/<int:user_id>', methods=['GET'])
+@jwt_required()
+# @csrf.exempt
+def get_user_by_id(user_id):
+    user = User.query.get(user_id)
+    if user:
+        user_data = {
+            'id': user.id,
+            'username': user.name,
+            'email': user.email
+        }
+        return jsonify(user_data)
+    else:
+        return jsonify({'message': 'User not found'}), 404
+
 
 @app.route('/api/auth/logout', methods=['POST'])
 def logout():
