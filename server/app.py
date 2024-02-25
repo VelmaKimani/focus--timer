@@ -41,6 +41,8 @@ def is_valid_email(email):
     email_regex = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
     return email_regex.match(email) is not None
 
+
+
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.json
@@ -101,7 +103,10 @@ def login():
 @app.route('/user/<string:name>', methods=['PATCH'])
 @jwt_required()
 
-def update_user(name):
+
+@app.route('/user/<string:username>', methods=['PATCH'])
+@jwt_required()
+def update_user(username):
     current_user_id = request.current_user_id
     current_user = User.query.get(current_user_id)
 
@@ -127,9 +132,9 @@ def update_user(name):
 
     return jsonify({'message': 'User updated successfully'}), 200
 
-@app.route('/user/<string:name>', methods=['DELETE'])
-@jwt_required()
 
+@app.route('/user/<string:username>', methods=['DELETE'])
+@jwt_required()
 def delete_user(name):
     current_user_id = request.current_user_id
     current_user = User.query.get(current_user_id)
@@ -158,6 +163,21 @@ def get_users():
         'email': user.email
     } for user in users]
     return jsonify(user_data)
+
+@app.route('/users/<int:user_id>', methods=['GET'])
+@jwt_required()
+# @csrf.exempt
+def get_user_by_id(user_id):
+    user = User.query.get(user_id)
+    if user:
+        user_data = {
+            'id': user.id,
+            'username': user.name,
+            'email': user.email
+        }
+        return jsonify(user_data)
+    else:
+        return jsonify({'message': 'User not found'}), 404
 
 @app.route('/logout', methods=['POST'])
 def logout():
