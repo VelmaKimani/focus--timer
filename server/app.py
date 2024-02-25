@@ -39,7 +39,7 @@ jwt = JWTManager(app)
 
 
 
-@app.route('/api/auth/signup', methods=['POST'])
+@app.route('/signup', methods=['POST'])
 def signup():
     data = request.json
 
@@ -68,7 +68,7 @@ def signup():
     set_access_cookies(resp, access_token)
     return resp, 201
 
-@app.route('/api/auth/login', methods=['POST'])
+@app.route('/login', methods=['POST'])
 def login():
     data = request.json
 
@@ -98,10 +98,6 @@ def login():
 
 @app.route('/user/<string:name>', methods=['PATCH'])
 @jwt_required()
-
-
-@app.route('/api/user/<string:username>', methods=['PATCH'])
-@jwt_required()
 def update_user(username):
     current_user_id = request.current_user_id
     current_user = User.query.get(current_user_id)
@@ -129,7 +125,7 @@ def update_user(username):
     return jsonify({'message': 'User updated successfully'}), 200
 
 
-@app.route('/api/user/<string:username>', methods=['DELETE'])
+@app.route('/user/<string:username>', methods=['DELETE'])
 @jwt_required()
 def delete_user(name):
     current_user_id = request.current_user_id
@@ -176,7 +172,7 @@ def get_user_by_id(user_id):
         return jsonify({'message': 'User not found'}), 404
 
 
-@app.route('/api/auth/logout', methods=['POST'])
+@app.route('/logout', methods=['POST'])
 def logout():
     resp = jsonify({'logout': True})
     unset_jwt_cookies(resp)
