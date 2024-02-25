@@ -18,7 +18,7 @@ app = Flask(__name__)
 
 CORS(app, supports_credentials=True)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
@@ -42,40 +42,35 @@ def is_valid_email(email):
     return email_regex.match(email) is not None
 
 @app.route('/signup', methods=['POST'])
-
 def signup():
     data = request.json
 
-    name = data.get('name')
+    username = data.get('username')
     email = data.get('email')
     password = data.get('password')
 
-    if not name or not email or not password:
+    if not username or not email or not password:
         return jsonify({'message': 'check if you have entered email or password'}), 400
-    
-    if not is_valid_email(email):
-        return jsonify({'message': 'Invalid email format'}), 400
 
-    if User.query.filter_by(name=name).first() or User.query.filter_by(email=email).first():
+    if User.query.filter_by(name=username).first() or User.query.filter_by(email=email).first():
         return jsonify({'message': 'Username or email already exists'}), 400
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    new_user = User(name=name, email=email, password=hashed_password)
+    new_user = User(name=username, email=email, password=hashed_password)
     db.session.add(new_user)
     db.session.commit()
 
     access_token = create_access_token(identity=new_user.id)
     resp = jsonify({'message': 'User registered successfully!', 
-                    'name': name,
+                    'username': username,
                     'email':email,
-                    'password':hashed_password,
+                    'password':password,
                     'token': access_token})
     set_access_cookies(resp, access_token)
     return resp, 201
 
 @app.route('/login', methods=['POST'])
-
 def login():
     data = request.json
 
@@ -281,4 +276,4 @@ def delete_report(id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=5000,debug=True)
