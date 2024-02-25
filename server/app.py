@@ -37,13 +37,9 @@ bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
 
-def is_valid_email(email):
-    email_regex = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
-    return email_regex.match(email) is not None
 
 
-
-@app.route('/signup', methods=['POST'])
+@app.route('/api/auth/signup', methods=['POST'])
 def signup():
     data = request.json
 
@@ -72,7 +68,7 @@ def signup():
     set_access_cookies(resp, access_token)
     return resp, 201
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.json
 
@@ -104,7 +100,7 @@ def login():
 @jwt_required()
 
 
-@app.route('/user/<string:username>', methods=['PATCH'])
+@app.route('/api/user/<string:username>', methods=['PATCH'])
 @jwt_required()
 def update_user(username):
     current_user_id = request.current_user_id
@@ -133,7 +129,7 @@ def update_user(username):
     return jsonify({'message': 'User updated successfully'}), 200
 
 
-@app.route('/user/<string:username>', methods=['DELETE'])
+@app.route('/api/user/<string:username>', methods=['DELETE'])
 @jwt_required()
 def delete_user(name):
     current_user_id = request.current_user_id
@@ -179,7 +175,8 @@ def get_user_by_id(user_id):
     else:
         return jsonify({'message': 'User not found'}), 404
 
-@app.route('/logout', methods=['POST'])
+
+@app.route('/api/auth/logout', methods=['POST'])
 def logout():
     resp = jsonify({'logout': True})
     unset_jwt_cookies(resp)
