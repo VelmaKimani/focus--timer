@@ -96,6 +96,12 @@ def login():
     set_access_cookies(resp, access_token)
     return resp, 200
 
+@app.route('/api/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user_id = get_jwt_identity()
+    return jsonify(logged_in_as=current_user_id), 200
+
 @app.route('/user/<string:name>', methods=['PATCH'])
 @jwt_required()
 def update_user(username):
