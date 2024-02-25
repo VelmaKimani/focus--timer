@@ -111,7 +111,7 @@ def update_user(username):
     if not current_user or not bcrypt.check_password_hash(current_user.password, request.json.get('current_password')):
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    user_to_update = User.query.filter_by(name=name).first()
+    user_to_update = User.query.filter_by(name=username).first()
 
     if not user_to_update:
         return jsonify({'message': 'User not found'}), 404
