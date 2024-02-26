@@ -50,7 +50,7 @@ def signup():
     password = data.get('password')
 
     if not name or not email or not password:
-        return jsonify({'message': 'check if you have entered email or password'}), 400
+        return jsonify({'message': 'Please provide name, email, and password'}), 400
     
     if not is_valid_email(email):
         return jsonify({'message': 'Invalid email format'}), 400
