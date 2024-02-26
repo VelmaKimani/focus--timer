@@ -18,7 +18,7 @@ app = Flask(__name__)
 
 CORS(app, supports_credentials=True)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
@@ -42,7 +42,6 @@ def is_valid_email(email):
     return email_regex.match(email) is not None
 
 @app.route('/signup', methods=['POST'])
-
 def signup():
     data = request.json
 
@@ -51,7 +50,7 @@ def signup():
     password = data.get('password')
 
     if not name or not email or not password:
-        return jsonify({'message': 'check if you have entered email or password'}), 400
+        return jsonify({'message': 'Please provide name, email, and password'}), 400
     
     if not is_valid_email(email):
         return jsonify({'message': 'Invalid email format'}), 400
@@ -75,7 +74,6 @@ def signup():
     return resp, 201
 
 @app.route('/login', methods=['POST'])
-
 def login():
     data = request.json
 
@@ -103,17 +101,22 @@ def login():
     set_access_cookies(resp, access_token)
     return resp, 200
 
+@app.route('/api/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user_id = get_jwt_identity()
+    return jsonify(logged_in_as=current_user_id), 200
+
 @app.route('/user/<string:name>', methods=['PATCH'])
 @jwt_required()
-
-def update_user(name):
+def update_user(username):
     current_user_id = request.current_user_id
     current_user = User.query.get(current_user_id)
 
     if not current_user or not bcrypt.check_password_hash(current_user.password, request.json.get('current_password')):
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    user_to_update = User.query.filter_by(name=name).first()
+    user_to_update = User.query.filter_by(name=username).first()
 
     if not user_to_update:
         return jsonify({'message': 'User not found'}), 404
@@ -132,9 +135,9 @@ def update_user(name):
 
     return jsonify({'message': 'User updated successfully'}), 200
 
-@app.route('/user/<string:name>', methods=['DELETE'])
-@jwt_required()
 
+@app.route('/user/<string:username>', methods=['DELETE'])
+@jwt_required()
 def delete_user(name):
     current_user_id = request.current_user_id
     current_user = User.query.get(current_user_id)
@@ -163,6 +166,22 @@ def get_users():
         'email': user.email
     } for user in users]
     return jsonify(user_data)
+
+@app.route('/users/<int:user_id>', methods=['GET'])
+@jwt_required()
+# @csrf.exempt
+def get_user_by_id(user_id):
+    user = User.query.get(user_id)
+    if user:
+        user_data = {
+            'id': user.id,
+            'username': user.name,
+            'email': user.email
+        }
+        return jsonify(user_data)
+    else:
+        return jsonify({'message': 'User not found'}), 404
+
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -281,4 +300,4 @@ def delete_report(id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=5000,debug=True)
