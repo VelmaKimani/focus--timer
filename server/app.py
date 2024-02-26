@@ -77,15 +77,15 @@ def signup():
 def login():
     data = request.json
 
-    username = data.get('username')
+    name = data.get('name')
     password = data.get('password')
     email = data.get('email')
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    if not username or not password:
+    if not name or not password:
         return jsonify({'message': 'Incomplete data'}), 400
 
-    user = User.query.filter_by(name=username).first()
+    user = User.query.filter_by(name=name).first()
 
     if not user or not bcrypt.check_password_hash(user.password, password):
         resp = jsonify({'message': 'Invalid credentials'})
@@ -94,7 +94,7 @@ def login():
 
     access_token = create_access_token(identity=user.id)
     resp = jsonify({
-        'username': username,
+        'name': name,
         'password':hashed_password,
         'token': access_token
                     })
