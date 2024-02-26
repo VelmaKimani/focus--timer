@@ -10,10 +10,10 @@ from flask_sqlalchemy import SQLAlchemy
 from models import db, User, Report, Task
 from datetime import datetime, time
 import os
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
 
-# load_dotenv()
+load_dotenv()
 app = Flask(__name__) 
 
 CORS(app, supports_credentials=True)
