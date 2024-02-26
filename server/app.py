@@ -37,33 +37,38 @@ bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
 
-
+def is_valid_email(email):
+    email_regex = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
+    return email_regex.match(email) is not None
 
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.json
 
-    username = data.get('username')
+    name = data.get('name')
     email = data.get('email')
     password = data.get('password')
 
-    if not username or not email or not password:
+    if not name or not email or not password:
         return jsonify({'message': 'check if you have entered email or password'}), 400
+    
+    if not is_valid_email(email):
+        return jsonify({'message': 'Invalid email format'}), 400
 
-    if User.query.filter_by(name=username).first() or User.query.filter_by(email=email).first():
+    if User.query.filter_by(name=name).first() or User.query.filter_by(email=email).first():
         return jsonify({'message': 'Username or email already exists'}), 400
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    new_user = User(name=username, email=email, password=hashed_password)
+    new_user = User(name=name, email=email, password=hashed_password)
     db.session.add(new_user)
     db.session.commit()
 
     access_token = create_access_token(identity=new_user.id)
     resp = jsonify({'message': 'User registered successfully!', 
-                    'username': username,
+                    'name': name,
                     'email':email,
-                    'password':password,
+                    'password':hashed_password,
                     'token': access_token})
     set_access_cookies(resp, access_token)
     return resp, 201
@@ -72,15 +77,15 @@ def signup():
 def login():
     data = request.json
 
-    name = data.get('name')
+    username = data.get('username')
     password = data.get('password')
     email = data.get('email')
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    if not name or not password:
+    if not username or not password:
         return jsonify({'message': 'Incomplete data'}), 400
 
-    user = User.query.filter_by(name=name).first()
+    user = User.query.filter_by(name=username).first()
 
     if not user or not bcrypt.check_password_hash(user.password, password):
         resp = jsonify({'message': 'Invalid credentials'})
@@ -89,7 +94,7 @@ def login():
 
     access_token = create_access_token(identity=user.id)
     resp = jsonify({
-        'name': name,
+        'username': username,
         'password':hashed_password,
         'token': access_token
                     })
