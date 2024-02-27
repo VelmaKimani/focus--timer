@@ -201,9 +201,14 @@ def create_task():
     hours = data['hours']
     minutes = data['minutes']
     seconds = data['seconds']
+    user_id= data['user_id']
 
-    form_data = FormData(title=title, category=category, description=description, date=date, hours=hours, minutes=minutes, seconds=seconds)
+    form_data = FormData(title=title, category=category, description=description, date=date, hours=hours, minutes=minutes, seconds=seconds, user_id=user_id)
+
+    # task = Task(title=title, category=category, description=description, date=date, hours=hours, minutes=minutes, seconds=seconds)
+
     db.session.add(form_data)
+    # db.session.add(task)
     db.session.commit()
 
     
