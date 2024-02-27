@@ -55,3 +55,26 @@ class Task(db.Model):
         if value not in ['ongoing', 'completed']:
             raise ValueError("Status must be either 'ongoing' or 'completed'.")
         return value
+    
+class FormData(db.Model):
+    __tablename__ = "form_data"
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100))
+    category = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    date = db.Column(db.String(20))
+    hours = db.Column(db.String(20))
+    minutes = db.Column(db.String(20))
+    seconds = db.Column(db.String(20))
+    
+    def serialize(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'category': self.category,
+            'description': self.description,
+            'date': self.date,
+            'hours': self.hours,
+            'minutes': self.minutes,
+            'seconds': self.seconds
+        }
