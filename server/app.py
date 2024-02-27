@@ -193,29 +193,26 @@ def logout():
 @jwt_required()
 def create_task():
     data = request.json
-    date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-    time_parts = data['time'].split(':')
-    time_obj = time(int(time_parts[0]), int(time_parts[1]))
 
     new_task = Task(
-        task_name=data['task_name'],
-        duration=data['duration'],
+        title=data['title'],
         category=data['category'],
         description=data['description'],
-        date=date,
-        time=time_obj,
-        status=data['status'],
+        date=data['date'],
+        hours=data['hours'],
+        minutes=data['minutes'],
+        seconds=data['seconds'],
+        completed=data['completed'],
         user_id=data['user_id']
     )
     db.session.add(new_task)
     db.session.commit()
 
-    if new_task.status == 'completed':
+    if new_task.completed == True:
         Task.create_report_entry(new_task)
 
     return jsonify({
-        'task_name': data['task_name'],
-        'duration': data['duration'],
+        'title': data['title'],
         'category': data['category'],
         'description': data['description'],
         'message': 'Task created successfully'
@@ -229,14 +226,15 @@ def get_ongoing_tasks():
     for task in ongoing_tasks:
         task_data = {
             'id': task.id,
-            'task_name': task.task_name,
-            'duration': task.duration,
+            'title': task.title,
             'category': task.category,
-            'description': task.description,
-            'date': task.date.strftime('%Y-%m-%d'),
-            'time': task.time.strftime('%H:%M:%S'),
-            'status': task.status,
-            'user_id': task.user_id
+            'description':task.description,
+            'date':task.date,
+            'hours':task.hours,
+            'minutes':task.minutes,
+            'seconds':task.seconds,
+            'completed':task.completed,
+            'user_id':task.user_id
         }
         output.append(task_data)
     return jsonify({'tasks': output})
