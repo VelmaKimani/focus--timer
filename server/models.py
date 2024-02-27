@@ -28,24 +28,23 @@ class Task(db.Model):
     title = db.Column(db.String, nullable=False)
     category = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
-    date = db.Column(db.String(20))
-    hours = db.Column(db.String(20))
-    minutes = db.Column(db.String(20))
-    seconds = db.Column(db.String(20))
-    status = db.Column(db.String, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    hours = db.Column(db.String(2))
+    minutes = db.Column(db.String(2))
+    seconds = db.Column(db.String(2))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    report_id = db.Column(db.Integer, db.ForeignKey('report.id'), nullable=True)
 
     @staticmethod
     def create_report_entry(task):
         report_entry = Report(
-            task=task.task_name,
-            project=task.description,
-            duration=task.duration,
+            task=task.title,
             category=task.category,
+            project=task.description,
+            date=task.date,
+            hours=task.hours,
+            minutes=task.minutes,
+            seconds=task.seconds,
             user_id=task.user_id,
-            date=datetime.utcnow().date(),  # Ensure valid datetime objects are used
-            time=datetime.utcnow().time()   # Ensure valid datetime objects are used
         )
         db.session.add(report_entry)
         db.session.commit()
@@ -55,28 +54,3 @@ class Task(db.Model):
         if value not in ['ongoing', 'completed']:
             raise ValueError("Status must be either 'ongoing' or 'completed'.")
         return value
-    
-class FormData(db.Model):
-    __tablename__ = "form_data"
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100))
-    category = db.Column(db.String(100))
-    description = db.Column(db.Text)
-    date = db.Column(db.String(20))
-    hours = db.Column(db.String(20))
-    minutes = db.Column(db.String(20))
-    seconds = db.Column(db.String(20))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
-    def serialize(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'category': self.category,
-            'description': self.description,
-            'date': self.date,
-            'hours': self.hours,
-            'minutes': self.minutes,
-            'seconds': self.seconds,
-            'user_id': self.user_id
-        }
