@@ -32,6 +32,7 @@ class Task(db.Model):
     hours = db.Column(db.String(2))
     minutes = db.Column(db.String(2))
     seconds = db.Column(db.String(2))
+    completed= db.Column(db.Boolean(), default=False) # True if task completed
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     @staticmethod
@@ -44,6 +45,7 @@ class Task(db.Model):
             hours=task.hours,
             minutes=task.minutes,
             seconds=task.seconds,
+            completed=task.completed,
             user_id=task.user_id,
         )
         db.session.add(report_entry)
