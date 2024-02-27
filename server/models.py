@@ -66,6 +66,7 @@ class FormData(db.Model):
     hours = db.Column(db.String(20))
     minutes = db.Column(db.String(20))
     seconds = db.Column(db.String(20))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
     def serialize(self):
         return {
@@ -76,5 +77,6 @@ class FormData(db.Model):
             'date': self.date,
             'hours': self.hours,
             'minutes': self.minutes,
-            'seconds': self.seconds
+            'seconds': self.seconds,
+            'user_id': self.user_id
         }
