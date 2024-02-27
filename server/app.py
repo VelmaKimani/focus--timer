@@ -223,10 +223,11 @@ def create_task():
         'message': 'Task created successfully'
     }), 201
 
-@app.route('/get_tasks', methods=['GET'])
-@jwt_required()
-def get_ongoing_tasks():
-    ongoing_tasks = Task.query.filter_by(status='ongoing').all()
+@app.route('/get_tasks/<int:id>', methods=['GET'])
+# @jwt_required()
+def get_ongoing_tasks(id):
+    user_id=id
+    ongoing_tasks = Task.query.filter_by(user_id=user_id).all()
     output = []
     for task in ongoing_tasks:
         task_data = {
