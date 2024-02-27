@@ -194,15 +194,20 @@ def logout():
 def create_task():
     data = request.json
 
+    completed = data.get('completed', False)
+
+    # Convert date string to Python date object
+    date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+
     new_task = Task(
         title=data['title'],
         category=data['category'],
         description=data['description'],
-        date=data['date'],
+        date=date,
         hours=data['hours'],
         minutes=data['minutes'],
         seconds=data['seconds'],
-        completed=data['completed'],
+        completed= completed,
         user_id=data['user_id']
     )
     db.session.add(new_task)
