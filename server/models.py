@@ -25,14 +25,14 @@ class Report(db.Model):
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    task_name = db.Column(db.String, nullable=False)
-    duration = db.Column(db.Integer, nullable=False)
+    title = db.Column(db.String, nullable=False)
     category = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
-    date = db.Column(db.Date, default=datetime.utcnow().date)
-    time = db.Column(Time, default=datetime.utcnow().time)
+    date = db.Column(db.String(20))
+    hours = db.Column(db.String(20))
+    minutes = db.Column(db.String(20))
+    seconds = db.Column(db.String(20))
     status = db.Column(db.String, nullable=False)
-
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     report_id = db.Column(db.Integer, db.ForeignKey('report.id'), nullable=True)
 
