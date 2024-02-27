@@ -245,19 +245,17 @@ def update_task(id):
     task = Task.query.get_or_404(id)
     data = request.json
 
-    task.task_name = data['task_name']
-    task.duration = data['duration']
+    task.title = data['title']
     task.category = data['category']
     task.description = data['description']
-    task.status = data['status']
+    task.completed = data['completed']
 
-    if task.status == 'completed' and not task.report_id:
+    if task.completed == True and not task.report_id:
         Task.create_report_entry(task)
 
     db.session.commit()
     return jsonify({'message': 'Task updated successfully',
-                    'task_name':data['task_name'],
-                    'duration':data['duration'],
+                    'title':data['title'],
                     'category':data['category'],
                     'description':data['description'], 
                     })
