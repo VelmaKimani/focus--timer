@@ -7,7 +7,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager, set_access_cookies, create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Report, Task
+from models import FormData, db, User, Report, Task
 from datetime import datetime, time
 import os
 from dotenv import load_dotenv
@@ -174,81 +174,112 @@ def logout():
 @jwt_required()
 def create_task():
     data = request.json
-    date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-    time_parts = data['time'].split(':')
-    time_obj = time(int(time_parts[0]), int(time_parts[1]))
+    # date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+    # time_parts = data['time'].split(':')
+    # time_obj = time(int(time_parts[0]), int(time_parts[1]))
 
-    new_task = Task(
-        task_name=data['task_name'],
-        duration=data['duration'],
-        category=data['category'],
-        description=data['description'],
-        date=date,
-        time=time_obj,
-        status=data['status'],
-        user_id=data['user_id']
-    )
-    db.session.add(new_task)
+    # new_task = Task(
+    #     task_name=data['task_name'],
+    #     duration=data['duration'],
+    #     category=data['category'],
+    #     description=data['description'],
+    #     date=date,
+    #     time=time_obj,
+    #     status=data['status'],
+    #     user_id=data['user_id']
+    # )
+    # db.session.add(new_task)
+    # db.session.commit()
+    title = data['title']
+    category = data['category']
+    description = data['description']
+    date = data['date']
+    hours = data['hours']
+    minutes = data['minutes']
+    seconds = data['seconds']
+    # status = data['status']
+    # user_id = data['user_id']
+    # report_id = data['report_id']
+
+    form_data = FormData(title=title, category=category, description=description, date=date, hours=hours, minutes=minutes, seconds=seconds)
+    db.session.add(form_data)
     db.session.commit()
 
-    if new_task.status == 'completed':
-        Task.create_report_entry(new_task)
+    # if new_task.status == 'completed':
+    #     Task.create_report_entry(new_task)
 
     return jsonify({
-        'task_name': data['task_name'],
-        'duration': data['duration'],
-        'category': data['category'],
-        'description': data['description'],
+        'title':title,
+        # 'task_name': data['task_name'],
+        # 'duration': data['duration'],
+        # 'category': data['category'],
+        # 'description': data['description'],
         'message': 'Task created successfully'
     }), 201
 
 @app.route('/get_tasks', methods=['GET'])
 @jwt_required()
 def get_ongoing_tasks():
-    ongoing_tasks = Task.query.filter_by(status='ongoing').all()
-    output = []
-    for task in ongoing_tasks:
-        task_data = {
-            'id': task.id,
-            'task_name': task.task_name,
-            'duration': task.duration,
-            'category': task.category,
-            'description': task.description,
-            'date': task.date.strftime('%Y-%m-%d'),
-            'time': task.time.strftime('%H:%M:%S'),
-            'status': task.status,
-            'user_id': task.user_id
-        }
-        output.append(task_data)
-    return jsonify({'tasks': output})
+    # ongoing_tasks = Task.query.filter_by(status='ongoing').all()
+    # output = []
+    # for task in ongoing_tasks:
+    #     task_data = {
+    #         'id': task.id,
+    #         'task_name': task.task_name,
+    #         'duration': task.duration,
+    #         'category': task.category,
+    #         'description': task.description,
+    #         'date': task.date.strftime('%Y-%m-%d'),
+    #         'time': task.time.strftime('%H:%M:%S'),
+    #         'status': task.status,
+    #         'user_id': task.user_id
+    #     }
+    #     output.append(task_data)
+    # return jsonify({'tasks': output})
+    if request.method == 'GET':
+        tasks = FormData.query.all()
+        return jsonify({'tasks': [task.serialize() for task in tasks]})
+    elif request.method == 'POST':
+        data = request.json
+        task = FormData(title=data['title'], category=data['category'], description=data['description'], hours=data['hours'], minutes=data['minutes'], seconds=data['seconds'])
+        db.session.add(task)
+        db.session.commit()
+        return jsonify({'tasks': task.serialize()}), 201
+    
 
 @app.route('/update_task/<int:id>', methods=['PUT'])
 @jwt_required()
 def update_task(id):
-    task = Task.query.get_or_404(id)
+    task = FormData.query.get_or_404(id)
     data = request.json
 
-    task.task_name = data['task_name']
-    task.duration = data['duration']
+    task.title = data['title']
     task.category = data['category']
     task.description = data['description']
-    task.status = data['status']
+    # task.status = data['status']
+    task.date = data['date']
+    task.hours = data['hours']
+    task.minutes = data['minutes']
+    task.seconds = data['seconds']
 
-    if task.status == 'completed' and not task.report_id:
-        Task.create_report_entry(task)
+    # if task.status == 'completed' and not task.report_id:
+    #     Task.create_report_entry(task)
 
     db.session.commit()
     return jsonify({'message': 'Task updated successfully',
-                    'task_name':data['task_name'],
-                    'duration':data['duration'],
+                    'title':data['title'],
                     'category':data['category'],
                     'description':data['description'], 
+                    'date':data['date'],
+                    'hours':data['hours'],
+                    'minutes':data['minutes'],
+                    'seconds':data['seconds'],
                     })
 
 @app.route('/delete_task/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_task(id):
-    task = Task.query.get_or_404(id)
+    task = FormData.query.get_or_404(id)
     db.session.delete(task)
     db.session.commit()
     return jsonify({'message': 'Task deleted successfully'})
