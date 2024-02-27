@@ -29,9 +29,9 @@ class Task(db.Model):
     category = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
     date = db.Column(db.Date, nullable=False)
-    hours = db.Column(db.String(2))
-    minutes = db.Column(db.String(2))
-    seconds = db.Column(db.String(2))
+    hours = db.Column(db.String)
+    minutes = db.Column(db.String)
+    seconds = db.Column(db.String)
     completed= db.Column(db.Boolean(), default=False) # True if task completed
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
