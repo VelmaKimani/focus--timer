@@ -215,22 +215,15 @@ def create_task():
 @app.route('/get_tasks', methods=['GET'])
 @jwt_required()
 def get_ongoing_tasks():
-    ongoing_tasks = Task.query.filter_by(status='ongoing').all()
-    output = []
-    for task in ongoing_tasks:
-        task_data = {
-            'id': task.id,
-            'task_name': task.task_name,
-            'duration': task.duration,
-            'category': task.category,
-            'description': task.description,
-            'date': task.date.strftime('%Y-%m-%d'),
-            'time': task.time.strftime('%H:%M:%S'),
-            'status': task.status,
-            'user_id': task.user_id
-        }
-        output.append(task_data)
-    return jsonify({'tasks': output})
+    if request.method == 'GET':
+        tasks = FormData.query.all()
+        return jsonify({'tasks': [task.serialize() for task in tasks]})
+    elif request.method == 'POST':
+        data = request.json
+        task = FormData(title=data['title'], category=data['category'], description=data['description'], hours=data['hours'], minutes=data['minutes'], seconds=data['seconds'])
+        db.session.add(task)
+        db.session.commit()
+        return jsonify({'tasks': task.serialize()}), 201
 
 @app.route('/update_task/<int:id>', methods=['PUT'])
 @jwt_required()
