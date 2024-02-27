@@ -224,7 +224,7 @@ def create_task():
     }), 201
 
 @app.route('/get_tasks/<int:id>', methods=['GET'])
-# @jwt_required()
+@jwt_required()
 def get_ongoing_tasks(id):
     user_id=id
     ongoing_tasks = Task.query.filter_by(user_id=user_id).all()
