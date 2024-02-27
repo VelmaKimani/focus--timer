@@ -7,7 +7,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager, set_access_cookies, create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Report, Task
+from models import db, FormData,User, Report, Task
 from datetime import datetime, time
 import os
 from dotenv import load_dotenv
@@ -193,31 +193,22 @@ def logout():
 @jwt_required()
 def create_task():
     data = request.json
-    date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-    time_parts = data['time'].split(':')
-    time_obj = time(int(time_parts[0]), int(time_parts[1]))
+    
+    title = data['title']
+    category = data['category']
+    description = data['description']
+    date = data['date']
+    hours = data['hours']
+    minutes = data['minutes']
+    seconds = data['seconds']
 
-    new_task = Task(
-        task_name=data['task_name'],
-        duration=data['duration'],
-        category=data['category'],
-        description=data['description'],
-        date=date,
-        time=time_obj,
-        status=data['status'],
-        user_id=data['user_id']
-    )
-    db.session.add(new_task)
+    form_data = FormData(title=title, category=category, description=description, date=date, hours=hours, minutes=minutes, seconds=seconds)
+    db.session.add(form_data)
     db.session.commit()
 
-    if new_task.status == 'completed':
-        Task.create_report_entry(new_task)
-
+    
     return jsonify({
-        'task_name': data['task_name'],
-        'duration': data['duration'],
-        'category': data['category'],
-        'description': data['description'],
+        'title':title,
         'message': 'Task created successfully'
     }), 201
 
