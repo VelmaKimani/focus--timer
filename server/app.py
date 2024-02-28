@@ -272,17 +272,20 @@ def update_task(id):
     task = Task.query.get_or_404(id)
     data = request.json
 
+    # Convert date string to Python date object
+    date_str = data['date']
+    date_obj = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+
+
     task.title = data['title']
     task.category = data['category']
     task.description = data['description']
-    task.date= data['date']
+    task.date = date_obj
     task.hours=data['hours']
     task.minutes=data['minutes']
     task.seconds=data['seconds']
     task.completed = data['completed']
     
-
-
     # if task.completed == True and not task.report_id:
     #     Task.create_report_entry(task)
 
