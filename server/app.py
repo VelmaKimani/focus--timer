@@ -245,6 +245,27 @@ def get_ongoing_tasks(id):
         output.append(task_data)
     return jsonify({'tasks': output})
 
+@app.route('/get_task/<int:task_id>', methods=['GET'])
+# @jwt_required()
+def get_task(task_id):
+    task = Task.query.filter_by(id=task_id).first()
+    
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+
+    task_data = {
+        'title': task.title,
+        'category': task.category,
+        'description':task.description,
+        'date':task.date,
+        'hours':task.hours,
+        'minutes':task.minutes,
+        'seconds':task.seconds,
+        'completed':task.completed,
+    }
+        
+    return jsonify({'tasks': task_data})
+
 @app.route('/update_task/<int:id>', methods=['PUT'])
 @jwt_required()
 def update_task(id):
@@ -254,10 +275,16 @@ def update_task(id):
     task.title = data['title']
     task.category = data['category']
     task.description = data['description']
+    task.date= data['date']
+    task.hours=data['hours']
+    task.minutes=data['minutes']
+    task.seconds=data['seconds']
     task.completed = data['completed']
+    
 
-    if task.completed == True and not task.report_id:
-        Task.create_report_entry(task)
+
+    # if task.completed == True and not task.report_id:
+    #     Task.create_report_entry(task)
 
     db.session.commit()
     return jsonify({'message': 'Task updated successfully',
