@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import validates
 from sqlalchemy import Time, DateTime
-from datetime import datetime
+from datetime import date
 
 db = SQLAlchemy()
 
@@ -15,12 +15,14 @@ class User(db.Model):
 
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(DateTime, default=datetime.utcnow)
-    time = db.Column(Time, default=datetime.utcnow)
-    task = db.Column(db.String, nullable=False)
-    project = db.Column(db.String, nullable=False)
-    duration = db.Column(db.Integer, nullable=False)
+    title = db.Column(db.String, nullable=False)
     category = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    hours = db.Column(db.String)
+    minutes = db.Column(db.String)
+    seconds = db.Column(db.String)
+    completed= db.Column(db.Boolean(), nullable=True) # True if task completed
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 class Task(db.Model):
@@ -28,7 +30,7 @@ class Task(db.Model):
     title = db.Column(db.String, nullable=False)
     category = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
-    date = db.Column(db.Date, nullable=False)
+    date = db.Column(db.Date, nullable=True)
     hours = db.Column(db.String)
     minutes = db.Column(db.String)
     seconds = db.Column(db.String)
