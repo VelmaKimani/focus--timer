@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import validates
 from sqlalchemy import Time, DateTime
-from datetime import datetime
+from datetime import date
 
 db = SQLAlchemy()
 
@@ -15,37 +15,40 @@ class User(db.Model):
 
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(DateTime, default=datetime.utcnow)
-    time = db.Column(Time, default=datetime.utcnow)
-    task = db.Column(db.String, nullable=False)
-    project = db.Column(db.String, nullable=False)
-    duration = db.Column(db.Integer, nullable=False)
+    title = db.Column(db.String, nullable=False)
     category = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    hours = db.Column(db.String)
+    minutes = db.Column(db.String)
+    seconds = db.Column(db.String)
+    completed= db.Column(db.Boolean(), nullable=True) # True if task completed
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    task_name = db.Column(db.String, nullable=False)
-    duration = db.Column(db.Integer, nullable=False)
+    title = db.Column(db.String, nullable=False)
     category = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
-    date = db.Column(db.Date, default=datetime.utcnow().date)
-    time = db.Column(Time, default=datetime.utcnow().time)
-    status = db.Column(db.String, nullable=False)
-
+    date = db.Column(db.Date, nullable=True)
+    hours = db.Column(db.String)
+    minutes = db.Column(db.String)
+    seconds = db.Column(db.String)
+    completed= db.Column(db.Boolean(), default=False) # True if task completed
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    report_id = db.Column(db.Integer, db.ForeignKey('report.id'), nullable=True)
 
     @staticmethod
     def create_report_entry(task):
         report_entry = Report(
-            task=task.task_name,
-            project=task.description,
-            duration=task.duration,
+            task=task.title,
             category=task.category,
+            project=task.description,
+            date=task.date,
+            hours=task.hours,
+            minutes=task.minutes,
+            seconds=task.seconds,
+            completed=task.completed,
             user_id=task.user_id,
-            date=datetime.utcnow().date(),  # Ensure valid datetime objects are used
-            time=datetime.utcnow().time()   # Ensure valid datetime objects are used
         )
         db.session.add(report_entry)
         db.session.commit()
