@@ -296,6 +296,20 @@ def update_task(id):
                     'description':data['description'], 
                     })
 
+
+@app.route('/update_task_completed/<int:id>', methods=['PUT'])
+# @jwt_required()
+def update_task_completed(id):
+    task = Task.query.get_or_404(id)
+    data = request.json
+
+    task.completed = data['completed']
+    
+    db.session.commit()
+    return jsonify({'message': 'Task completed status updated successfully',
+                    'completed': data['completed']
+                    })
+
 @app.route('/delete_task/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_task(id):
