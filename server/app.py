@@ -296,6 +296,20 @@ def update_task(id):
                     'description':data['description'], 
                     })
 
+
+@app.route('/update_task_completed/<int:id>', methods=['PUT'])
+# @jwt_required()
+def update_task_completed(id):
+    task = Task.query.get_or_404(id)
+    data = request.json
+
+    task.completed = data['completed']
+    
+    db.session.commit()
+    return jsonify({'message': 'Task completed status updated successfully',
+                    'completed': data['completed']
+                    })
+
 @app.route('/delete_task/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_task(id):
@@ -304,23 +318,55 @@ def delete_task(id):
     db.session.commit()
     return jsonify({'message': 'Task deleted successfully'})
 
-@app.route('/get_reports', methods=['GET'])
-@jwt_required()
-def get_reports():
-    reports = Report.query.all()
+@app.route('/get_reports/<int:user_id>', methods=['GET'])
+# @jwt_required()
+def get_reports(user_id):
+    reports = Report.query.filter_by(user_id=user_id).all()
     output = []
     for report in reports:
         report_data = {
             'id': report.id,
-            'date': report.date.strftime('%Y-%m-%d'),
-            'time': report.time.strftime('%H:%M:%S'),
-            'task': report.task,
-            'project': report.project,
-            'duration': report.duration,
-            'category': report.category
+            'title': report.title,
+            'category': report.category,
+            'description':report.description,
+            'date':report.date,
+            'hours':report.hours,
+            'minutes':report.minutes,
+            'seconds':report.seconds,
+            'completed':report.completed,
+            'user_id':report.user_id
         }
         output.append(report_data)
     return jsonify({'reports': output})
+
+@app.route('/create_report', methods=['POST'])
+# @jwt_required()
+def create_report():
+    data = request.json
+
+    # Adjust the date parsing format to match the incoming date format
+    date = datetime.strptime(data['date'], '%a, %d %b %Y %H:%M:%S %Z').date()
+
+    new_report = Report(
+        title=data['title'],
+        category=data['category'],
+        description=data['description'],
+        date=date,
+        hours=data['hours'],
+        minutes=data['minutes'],
+        seconds=data['seconds'],
+        completed= data['completed'],
+        user_id=data['user_id']
+    )
+    db.session.add(new_report)
+    db.session.commit()
+
+    return jsonify({
+        'title': data['title'],
+        'category': data['category'],
+        'description': data['description'],
+        'message': 'Report created successfully'
+    }), 201
 
 @app.route('/delete_report/<int:id>', methods=['DELETE'])
 @jwt_required()
