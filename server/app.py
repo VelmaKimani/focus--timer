@@ -344,7 +344,8 @@ def get_reports(user_id):
 def create_report():
     data = request.json
 
-    date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+    # Adjust the date parsing format to match the incoming date format
+    date = datetime.strptime(data['date'], '%a, %d %b %Y %H:%M:%S %Z').date()
 
     new_report = Report(
         title=data['title'],
